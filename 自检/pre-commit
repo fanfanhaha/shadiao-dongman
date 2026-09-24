@@ -1,0 +1,16 @@
+#!/bin/sh
+# 铁律0卡点：剧本/台词类md无"## 自检记录"区块 → 拒绝commit
+# 豁免：制作工具/参考/（第三方资料）、制作工具/hooks/ 本身
+fail=0
+for f in $(git -c core.quotepath=false diff --cached --name-only --diff-filter=ACM | grep -E '(剧本|台词).*\.md$' | grep -v '^制作工具/参考/'); do
+  if [ -f "$f" ] && ! grep -q '## 自检记录' "$f"; then
+    echo ""
+    echo "❌ pre-commit拦截：$f"
+    echo "   缺少'## 自检记录'区块（铁律0：无自检记录=未完成品）"
+    echo "   补救：python -X utf8 制作工具/文稿自检.py \"$f\" --protagonist 主角全名"
+    echo "   然后把机器输出+人肉结论以'## 自检记录（日期）'追加到文件尾部再提交"
+    echo ""
+    fail=1
+  fi
+done
+exit $fail
